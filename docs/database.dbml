@@ -1,0 +1,44 @@
+// Haupcar Car Management - Database Diagram
+// Database: PostgreSQL
+// Preview: paste this file into https://dbdiagram.io
+
+Project haupcar_car_management {
+  database_type: 'PostgreSQL'
+  Note: 'Stores company car information (replaces the paper notebook).'
+}
+
+Table cars {
+  id                  integer      [pk, increment, note: 'GENERATED ALWAYS AS IDENTITY']
+  registration_number text         [not null, note: 'Car registration number, trimmed. e.g. "1กข 1234 Bangkok"']
+  brand               text         [not null, note: 'Car brand, e.g. Toyota']
+  model               text         [not null, note: 'Car model, e.g. Yaris']
+  year                smallint     [null, note: 'Optional. CHECK (year BETWEEN 1900 AND next year)']
+  color               text         [null, note: 'Optional']
+  notes               text         [null, note: 'Optional. Max 500 characters (checked by the API)']
+  created_at          timestamptz  [not null, default: `now()`]
+  updated_at          timestamptz  [not null, default: `now()`, note: 'Updated by the ORM on every change']
+  deleted_at          timestamptz  [null, default: null, note: 'Soft delete: NULL = active, a timestamp = deleted']
+
+  indexes {
+    registration_number [unique, name: 'cars_registration_number_active_key', note: 'Partial unique index: WHERE deleted_at IS NULL']
+  }
+
+  Note: '''
+  Requirement mapping:
+  - registration_number, brand, model, notes: required by the test spec
+  - year, color: the "Etc." fields
+  - Duplicate registration_number among active cars -> API returns 409 Conflict
+
+  Soft delete:
+  - DELETE /api/v1/cars/:id runs UPDATE cars SET deleted_at = now() (the row stays)
+  - Every read filters WHERE deleted_at IS NULL
+  - GET / PUT / DELETE on a soft-deleted car -> 404, as if it did not exist
+  - The unique index covers active rows only, so a deleted car's
+    registration number can be registered again
+
+  SQL for the index:
+    CREATE UNIQUE INDEX cars_registration_number_active_key
+      ON cars (registration_number)
+      WHERE deleted_at IS NULL;
+  '''
+}
