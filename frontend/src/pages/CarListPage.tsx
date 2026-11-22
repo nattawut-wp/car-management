@@ -13,11 +13,13 @@ export function CarListPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-2 text-3xl font-bold">
+          <h1 className="text-3xl font-bold">
             <span className="text-brand-gradient">Cars</span>
-            {state.status === "success" && <Badge variant="secondary">{state.data.length}</Badge>}
           </h1>
-          <p className="text-sm text-muted-foreground">All company cars</p>
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            All company cars
+            {state.status === "success" && <Badge variant="secondary">{state.data.length}</Badge>}
+          </p>
         </div>
         <Button render={<Link to="/cars/new" />} nativeButton={false}>
           <PlusIcon />
