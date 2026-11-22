@@ -1,64 +1,30 @@
-# Haupcar Car Management
+# Car Management
 
-A web application for recording and managing the company's car information, replacing the paper notebook so the data is safe and easy to share with every employee.
+Take-home assignment for the Full-Stack Developer position at Haupcar.
 
-Built as the take-home test for the Full-Stack Developer position at Haupcar Co., Ltd.
+A small web app for keeping track of the company's cars (registration number, brand, model, year, color, notes) instead of writing them down in a notebook. You can add, list, edit and delete cars. Deleting is a soft delete, so the row stays in the database.
 
-## Features
+## Stack
 
-| Requirement | Where |
-|---|---|
-| Add a new car (registration number, brand, model, notes, year, color) | **Add car** button → `/cars/new` |
-| View all cars | Home page `/` |
-| Edit a car | Pencil icon → `/cars/:id/edit` |
-| Delete a car (with confirmation) | Trash icon → confirm dialog |
+- Frontend: React 19 + TypeScript, Vite, Tailwind v4, shadcn/ui, React Router, React Hook Form + Zod, Axios
+- Backend: Node.js, Express 5, TypeScript, Zod, Prisma 7
+- Database: PostgreSQL 17 (Docker)
 
-## Tech Stack
+## Running it
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, shadcn/ui (Base UI), React Router, React Hook Form + Zod, Axios |
-| Backend | Node.js, Express 5, TypeScript, Zod, Prisma ORM 7 |
-| Database | PostgreSQL 17 |
-| Tooling | Docker Compose, tsx, oxlint |
+You need Docker Desktop and Node.js 22.12+.
 
-## Project Structure
-
-```
-haupcar-car-management/
-├── docker-compose.yml        PostgreSQL + database migration + API
-├── docs/database.dbml        Database diagram (open in https://dbdiagram.io)
-├── backend/
-│   ├── prisma/               Prisma schema and SQL migrations
-│   └── src/
-│       ├── app.ts            Express app (middleware, routes, error handling)
-│       ├── server.ts         Starts the HTTP server
-│       ├── config/           Environment variables and database client
-│       ├── middlewares/      validate, notFound, errorHandler
-│       ├── modules/cars/     schema → controller → service (one folder per feature)
-│       └── utils/
-└── frontend/
-    └── src/
-        ├── pages/            One component per route
-        ├── features/cars/    API calls, hooks, form schema and components for cars
-        ├── components/       App layout and shadcn/ui components
-        └── lib/              Axios client and API error helper
-```
-
-## Getting Started
-
-### Prerequisites
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- [Node.js](https://nodejs.org/) 22.12 or newer (for the frontend)
-
-### Option A: Run the API with Docker (recommended)
+### With Docker
 
 ```bash
-# 1. Start PostgreSQL, apply migrations and start the API on http://localhost:5000
 docker compose up -d --build
+```
 
-# 2. Start the frontend on http://localhost:5173
+This starts Postgres, runs the migrations and starts the API on http://localhost:5000.
+
+Then start the frontend:
+
+```bash
 cd frontend
 cp .env.example .env
 npm install
@@ -67,53 +33,42 @@ npm run dev
 
 Open http://localhost:5173.
 
-### Option B: Run everything locally (for development)
+### Running the API locally
+
+Handy when working on the backend, since `npm run dev` reloads on save.
 
 ```bash
-# 1. Start only PostgreSQL
 docker compose up -d postgres
 
-# 2. Backend (http://localhost:5000, reloads on save)
 cd backend
 cp .env.example .env
-npm install            # also generates the Prisma client
-npm run db:deploy      # create the tables
-npm run dev
-
-# 3. Frontend, in a second terminal (http://localhost:5173)
-cd frontend
-cp .env.example .env
-npm install
+npm install        # also runs prisma generate
+npm run db:deploy
 npm run dev
 ```
 
-> If you started Option A before, stop the API container first (`docker compose stop api`) so port 5000 is free.
+Start the frontend the same way as above in another terminal. If the `api` container from the Docker setup is still running, stop it first with `docker compose stop api`, otherwise port 5000 is already taken.
 
-### Useful commands
+### Other commands
 
-| Where | Command | What it does |
-|---|---|---|
-| root | `docker compose down` | Stop all containers (data is kept) |
-| root | `docker compose down -v` | Stop and delete the database data |
-| backend | `npm run db:studio` | Browse the database in Prisma Studio |
-| backend | `npm run db:migrate` | Create a new migration after editing `schema.prisma` |
-| backend / frontend | `npm run typecheck` | Type-check without running |
-| frontend | `npm run lint` | Lint with oxlint |
-| backend / frontend | `npm run build` | Production build |
+- `docker compose down` stops everything. Add `-v` to also wipe the database.
+- `npm run db:studio` (backend) opens Prisma Studio.
+- `npm run db:migrate` (backend) creates a new migration after changing `schema.prisma`.
+- `npm run typecheck` and `npm run build` work in both folders, `npm run lint` in the frontend.
 
 ## API
 
 Base URL: `http://localhost:5000/api/v1`
 
-| Method | Endpoint | Description | Success | Errors |
-|---|---|---|---|---|
-| GET | `/cars` | List all cars (newest first) | 200 | |
-| GET | `/cars/:id` | Get one car | 200 | 400, 404 |
-| POST | `/cars` | Create a car | 201 + `Location` header | 400, 409 |
-| PUT | `/cars/:id` | Replace a car's data | 200 | 400, 404, 409 |
-| DELETE | `/cars/:id` | Delete a car (soft delete) | 204 | 400, 404 |
+```
+GET    /cars        list cars, newest first
+GET    /cars/:id    get one car
+POST   /cars        create a car (201 + Location header)
+PUT    /cars/:id    update a car
+DELETE /cars/:id    soft delete a car (204)
+```
 
-Request body for `POST` and `PUT`:
+Body for POST and PUT:
 
 ```json
 {
@@ -126,9 +81,9 @@ Request body for `POST` and `PUT`:
 }
 ```
 
-`registrationNumber`, `brand` and `model` are required. `year`, `color` and `notes` are optional; send `null` or omit them.
+`registrationNumber`, `brand` and `model` are required, the rest can be `null` or left out. PUT replaces the whole record, so any optional field you leave out gets cleared.
 
-Every error uses the same shape:
+Errors always come back in this format:
 
 ```json
 {
@@ -139,40 +94,63 @@ Every error uses the same shape:
 }
 ```
 
-## Database Design
+400 means invalid input, 404 means the car doesn't exist (or was deleted), 409 means the registration number is already used.
+
+## Database
+
+There's only one table, `cars`. The diagram is in [`docs/database.dbml`](docs/database.dbml), you can paste it into https://dbdiagram.io to view it.
 
 ```mermaid
 erDiagram
     cars {
         integer id PK
-        text registration_number "unique among active cars"
+        text registration_number
         text brand
         text model
-        smallint year "nullable"
-        text color "nullable"
-        text notes "nullable"
+        smallint year
+        text color
+        text notes
         timestamptz created_at
         timestamptz updated_at
-        timestamptz deleted_at "NULL = active"
+        timestamptz deleted_at
     }
 ```
 
-The full diagram with notes is in [`docs/database.dbml`](docs/database.dbml).
+`deleted_at` is `NULL` while a car is active. Registration numbers must be unique, but only among active cars. I did this with a partial unique index (`WHERE deleted_at IS NULL`), so after a car is deleted its plate can be registered again.
 
-## Additional Features
+## Project layout
 
-Beyond the basic requirements:
+```
+backend/
+  prisma/              schema and migrations
+  src/
+    config/            env variables, Prisma client
+    middlewares/       validate, notFound, errorHandler
+    modules/cars/      routes, controller, service, zod schema
+frontend/
+  src/
+    pages/             one component per route
+    features/cars/     api calls, hooks, form schema, components
+    components/        layout + shadcn/ui components
+    lib/               axios client, error helper
+docs/database.dbml
+docker-compose.yml
+```
 
-- **Soft delete.** Deleting a car sets `deleted_at` instead of removing the row, so the history is kept and a mistaken delete can be recovered.
-- **Unique registration numbers among active cars.** A partial unique index (`WHERE deleted_at IS NULL`) blocks duplicates, while still allowing a deleted car's registration number to be registered again.
-- **Validation on both sides.** Zod schemas validate the form in the browser and the request on the server. Errors from the API, such as a duplicate registration number, are shown under the matching form field.
-- **Consistent API errors** with correct HTTP status codes (400, 404, 409, 500), handled in one central error handler.
-- **One-command setup** with Docker Compose, including automatic database migrations.
-- **Loading, empty and error states** in the UI, with a retry button when the API is unreachable.
+Code is grouped by feature instead of by type, so everything about cars is in one place. On the backend the controller only handles the request and response, and the service does the database work. Request validation goes through a small `validate()` helper that passes the parsed params and body to the handler, so there's no need to cast `req.body`.
 
-## Design Decisions
+## Extras
 
-- **Feature-based folders** (`modules/cars`, `features/cars`): everything about cars lives together, so adding a new feature means adding a folder rather than touching every layer's folder.
-- **Controller → service → database layers**: controllers only translate HTTP, services hold the business rules and never see `req`/`res`.
-- **Typed validation helper**: `validate()` passes the parsed `params` and `body` into the handler, so types flow from the Zod schema without casting `req.body`.
-- **`PUT` replaces the whole record**, so create and update share one schema and omitted optional fields are cleared.
+Things I added on top of the basic requirements:
+
+- Soft delete with the partial unique index described above
+- Zod validation on both the frontend and the backend. Errors from the server, like a duplicate plate, show up under the matching form field.
+- One error handler for the whole API, so every error has the same format
+- Docker Compose runs the migrations automatically before starting the API
+- Loading, empty and error states in the UI, with a retry button if the API is down
+
+## If I had more time
+
+- Search and pagination
+- Restoring deleted cars
+- Automated tests
