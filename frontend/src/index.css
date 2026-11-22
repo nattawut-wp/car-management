@@ -1,13 +1,17 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@fontsource/prompt/400.css";
+@import "@fontsource/prompt/500.css";
+@import "@fontsource/prompt/600.css";
+@import "@fontsource/prompt/700.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
     --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
+    --font-sans: 'Prompt', system-ui, sans-serif;
+    --color-brand-cyan: var(--brand-cyan);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,39 +52,41 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* HAUP brand palette (from haup.ai) */
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
+    --background: #f4f5f9;
+    --foreground: #212427;
+    --card: #ffffff;
+    --card-foreground: #212427;
+    --popover: #ffffff;
+    --popover-foreground: #212427;
+    --primary: #0048b3;
+    --primary-foreground: #ffffff;
+    --secondary: #e6f3ff;
+    --secondary-foreground: #0048b3;
+    --muted: #eaecef;
+    --muted-foreground: #667085;
+    --accent: #e6f3ff;
+    --accent-foreground: #0048b3;
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --border: #e4e7ec;
+    --input: #d0d5dd;
+    --ring: #155dfc;
+    --brand-cyan: #22c5ee;
+    --chart-1: #0048b3;
+    --chart-2: #155dfc;
+    --chart-3: #22c5ee;
+    --chart-4: #f5a623;
+    --chart-5: #667085;
+    --radius: 0.75rem;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #212427;
+    --sidebar-primary: #0048b3;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #e6f3ff;
+    --sidebar-accent-foreground: #0048b3;
+    --sidebar-border: #e4e7ec;
+    --sidebar-ring: #155dfc;
 }
 
 .dark {
@@ -90,8 +96,9 @@
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.205 0 0);
     --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
+    --primary: #4d8ef7;
+    --primary-foreground: #ffffff;
+    --brand-cyan: #22c5ee;
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.269 0 0);
@@ -102,11 +109,11 @@
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
     --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
+    --chart-1: #4d8ef7;
+    --chart-2: #155dfc;
+    --chart-3: #22c5ee;
+    --chart-4: #f5a623;
+    --chart-5: #98a2b3;
     --sidebar: oklch(0.205 0 0);
     --sidebar-foreground: oklch(0.985 0 0);
     --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -127,4 +134,11 @@
   html {
     @apply font-sans;
     }
+}
+
+/* Blue -> cyan gradient used on haup.ai headings ("Everyday Living") */
+@utility text-brand-gradient {
+  background-image: linear-gradient(90deg, var(--primary), var(--brand-cyan));
+  background-clip: text;
+  color: transparent;
 }

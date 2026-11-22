@@ -15,14 +15,20 @@ import { DeleteCarDialog } from "./DeleteCarDialog";
 
 const COLUMNS = ["Registration number", "Brand", "Model", "Year", "Color", "Notes"];
 
+// Light-blue header band so column titles stand apart from the data rows
+const HEAD_CLASS =
+  "h-11 text-xs font-semibold tracking-wide text-primary uppercase first:rounded-l-lg last:rounded-r-lg";
+
 function CarTableHeader() {
   return (
     <TableHeader>
-      <TableRow>
+      <TableRow className="border-none bg-secondary hover:bg-secondary">
         {COLUMNS.map((column) => (
-          <TableHead key={column}>{column}</TableHead>
+          <TableHead key={column} className={HEAD_CLASS}>
+            {column}
+          </TableHead>
         ))}
-        <TableHead className="w-24 text-right">Actions</TableHead>
+        <TableHead className={`${HEAD_CLASS} w-24 text-right`}>Actions</TableHead>
       </TableRow>
     </TableHeader>
   );
