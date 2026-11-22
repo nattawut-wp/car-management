@@ -8,15 +8,15 @@ Project haupcar_car_management {
 }
 
 Table cars {
-  id                  integer      [pk, increment, note: 'GENERATED ALWAYS AS IDENTITY']
+  id                  integer      [pk, increment, note: 'SERIAL (Prisma @default(autoincrement()))']
   registration_number text         [not null, note: 'Car registration number, trimmed. e.g. "1กข 1234 Bangkok"']
   brand               text         [not null, note: 'Car brand, e.g. Toyota']
   model               text         [not null, note: 'Car model, e.g. Yaris']
-  year                smallint     [null, note: 'Optional. CHECK (year BETWEEN 1900 AND next year)']
+  year                smallint     [null, note: 'Optional. 1900 to next year (checked by the API)']
   color               text         [null, note: 'Optional']
   notes               text         [null, note: 'Optional. Max 500 characters (checked by the API)']
   created_at          timestamptz  [not null, default: `now()`]
-  updated_at          timestamptz  [not null, default: `now()`, note: 'Updated by the ORM on every change']
+  updated_at          timestamptz  [not null, note: 'Set by Prisma @updatedAt on every write']
   deleted_at          timestamptz  [null, default: null, note: 'Soft delete: NULL = active, a timestamp = deleted']
 
   indexes {

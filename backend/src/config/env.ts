@@ -5,6 +5,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   PORT: z.coerce.number().int().positive().default(5000),
   CLIENT_URL: z.url().default("http://localhost:5173"),
+  DATABASE_URL: z.url(),
 });
 
 // Validate once at startup so a missing or malformed variable stops the app

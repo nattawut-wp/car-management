@@ -1,0 +1,29 @@
+generator client {
+  provider             = "prisma-client"
+  output               = "../src/generated/prisma"
+  moduleFormat         = "esm"
+  importFileExtension  = "js"
+  previewFeatures      = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Car {
+  id                 Int       @id @default(autoincrement())
+  registrationNumber String    @map("registration_number")
+  brand              String
+  model              String
+  year               Int?      @db.SmallInt
+  color              String?
+  notes              String?
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt          DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  // Unique among active cars only, so a soft-deleted car's registration
+  // number can be registered again.
+  @@unique([registrationNumber], map: "cars_registration_number_active_key", where: { deletedAt: null })
+  @@map("cars")
+}
