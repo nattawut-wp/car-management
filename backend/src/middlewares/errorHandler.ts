@@ -1,7 +1,7 @@
 import type { ErrorRequestHandler } from "express";
 import { ZodError } from "zod";
-import { Prisma } from "../generated/prisma/client.js";
 import { HttpError } from "../utils/HttpError.js";
+import { isPrismaError, PrismaErrorCode } from "../utils/prismaErrors.js";
 
 interface ErrorResponse {
   status: number;
@@ -25,26 +25,24 @@ function toErrorResponse(err: unknown): ErrorResponse {
     };
   }
 
-  if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    // Prisma error codes: https://www.prisma.io/docs/orm/reference/error-reference
-    if (err.code === "P2002") {
-      return { status: 409, message: "A record with the same unique value already exists" };
-    }
-    if (err.code === "P2025") {
-      return { status: 404, message: "Record not found" };
-    }
+  if (isPrismaError(err, PrismaErrorCode.UniqueConstraintViolation)) {
+    return { status: 409, message: "A record with the same unique value already exists" };
   }
 
-  // Errors raised by express.json() (e.g. malformed JSON) carry a 4xx status
-  // and `expose: true`, meaning their message is safe to show the client.
-  if (isExposableHttpError(err)) {
+  if (isPrismaError(err, PrismaErrorCode.RecordNotFound)) {
+    return { status: 404, message: "Record not found" };
+  }
+
+  if (isClientSafeHttpError(err)) {
     return { status: err.status, message: err.message };
   }
 
   return { status: 500, message: "Internal server error" };
 }
 
-function isExposableHttpError(err: unknown): err is { status: number; message: string } {
+// Errors from express.json(), such as malformed JSON, set `expose: true` to
+// mark their message as safe to send to the client.
+function isClientSafeHttpError(err: unknown): err is { status: number; message: string } {
   return (
     typeof err === "object" &&
     err !== null &&
@@ -55,12 +53,11 @@ function isExposableHttpError(err: unknown): err is { status: number; message: s
   );
 }
 
-// Express recognises an error handler only by its four parameters, so `_next`
-// must stay in the signature even though it is unused.
+// Express treats a middleware as an error handler only when it declares four
+// parameters, so `_next` must stay even though it is unused.
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   const { status, message, details } = toErrorResponse(err);
 
-  // Never leak internals to the client; log them for the developer instead.
   if (status >= 500) {
     console.error(err);
   }
