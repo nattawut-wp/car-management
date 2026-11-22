@@ -12,16 +12,13 @@ export interface ValidatedInput<TParams extends z.ZodType, TBody extends z.ZodTy
 }
 
 /**
- * Parses `req.params` and `req.body` with the given Zod schemas, then calls
- * the handler with the parsed values as typed arguments.
- *
- * A middleware that overwrites `req.body` would leave it typed as `any` in the
- * handler, forcing a cast. Passing the parsed values in keeps the types that
- * Zod inferred. Invalid input throws a ZodError, which the error handler turns
- * into a 400 response.
+ * Wraps a handler so it receives `params` and `body` already parsed and typed
+ * by the given Zod schemas. Invalid input throws a ZodError (→ 400).
  *
  * @example
- * router.put("/:id", validate({ params: carIdParamSchema, body: updateCarSchema }, updateCar));
+ * validate({ params: carIdParamSchema }, async ({ params }, res) => {
+ *   res.json(await getCar(params.id));
+ * });
  */
 export function validate<
   TParams extends z.ZodType = z.ZodUndefined,
@@ -34,9 +31,8 @@ export function validate<
     const params = schemas.params?.parse(req.params);
     const body = schemas.body?.parse(req.body);
 
-    // When a schema is omitted its generic defaults to ZodUndefined, so the
-    // matching value really is `undefined`. TypeScript cannot follow that
-    // link between the optional schema and its default, hence the assertion.
+    // An omitted schema defaults to ZodUndefined, so its value really is
+    // undefined; TypeScript cannot link the two, hence the assertion.
     await handler({ params, body } as ValidatedInput<TParams, TBody>, res, req);
   };
 }

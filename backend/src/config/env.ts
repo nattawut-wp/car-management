@@ -8,8 +8,6 @@ const envSchema = z.object({
   DATABASE_URL: z.url(),
 });
 
-// Validate once at startup so a missing or malformed variable stops the app
-// immediately, instead of surfacing later as a confusing runtime error.
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
